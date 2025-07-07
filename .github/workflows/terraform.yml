@@ -18,18 +18,18 @@ jobs:
       AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
       AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
       AWS_REGION: ${{ secrets.AWS_REGION }}
-      TF_LOG: DEBUG        # Activa logs detallados de Terraform
-      TF_LOG_PATH: terraform.log  # Guarda el log en archivo
+      TF_LOG: DEBUG
+      TF_LOG_PATH: terraform.log
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      - name: Show environment variables (masked sensitive data)
+      - name: Mostrar variables de entorno (seguras)
         run: |
-          echo "AWS_REGION is $AWS_REGION"
-          echo "AWS_ACCESS_KEY_ID is set: ${AWS_ACCESS_KEY_ID:+yes}"
-          echo "AWS_SECRET_ACCESS_KEY is set: ${AWS_SECRET_ACCESS_KEY:+yes}"
+          echo "AWS_REGION: $AWS_REGION"
+          echo "AWS_ACCESS_KEY_ID está definida: ${AWS_ACCESS_KEY_ID:+sí}"
+          echo "AWS_SECRET_ACCESS_KEY está definida: ${AWS_SECRET_ACCESS_KEY:+sí}"
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v2
@@ -42,9 +42,10 @@ jobs:
       - name: Terraform Plan
         run: terraform plan
 
-      - name: Upload Terraform debug log
+      - name: Subir log de Terraform (si falla)
         if: failure()
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: terraform-debug-log
-          path: terraform.log
+          path: terraform/terraform.log
+
