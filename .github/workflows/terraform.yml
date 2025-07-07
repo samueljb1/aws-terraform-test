@@ -1,4 +1,4 @@
-name: Terraform Plan and Apply
+name: Terraform Plan Debug
 
 on:
   push:
@@ -18,10 +18,18 @@ jobs:
       AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
       AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
       AWS_REGION: ${{ secrets.AWS_REGION }}
+      TF_LOG: DEBUG        # Activa logs detallados de Terraform
+      TF_LOG_PATH: terraform.log  # Guarda el log en archivo
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
+
+      - name: Show environment variables (masked sensitive data)
+        run: |
+          echo "AWS_REGION is $AWS_REGION"
+          echo "AWS_ACCESS_KEY_ID is set: ${AWS_ACCESS_KEY_ID:+yes}"
+          echo "AWS_SECRET_ACCESS_KEY is set: ${AWS_SECRET_ACCESS_KEY:+yes}"
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v2
@@ -34,6 +42,9 @@ jobs:
       - name: Terraform Plan
         run: terraform plan
 
-      # Si quieres aplicar automáticamente:
-      #- name: Terraform Apply
-      #  run: terraform apply -auto-approve
+      - name: Upload Terraform debug log
+        if: failure()
+        uses: actions/upload-artifact@v3
+        with:
+          name: terraform-debug-log
+          path: terraform.log
